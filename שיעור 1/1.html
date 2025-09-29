@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="he">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar עם ניהול אירועים</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
+    <style>
+        /* סגנון הכפתורים */
+        #buttons-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #buttons-container button {
+            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* סגנון קלנדר */
+        #calendar {
+            max-width: 900px;
+            margin: 0 auto;
+            height: 600px;
+        }
+
+        /* סגנון טופס */
+        #event-form {
+            display: none;
+            /* בהתחלה מוסתר */
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #event-form label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        #event-form input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        #event-form button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- כפתורים למעלה -->
+    <div id="buttons-container">
+        <button type="button" onclick="showForm('add')">הוסף אירוע</button>
+        <button type="button" onclick="showForm('update')">עדכן אירוע</button>
+        <button type="button" onclick="showForm('delete')">מחק אירוע</button>
+    </div>
+
+    <!-- טופס אירוע -->
+    <div id="event-form">
+        <h3 id="form-title">טופס אירוע</h3>
+        <label for="event-name">שם האירוע:</label>
+        <input type="text" id="event-name">
+
+        <label for="event-date">תאריך:</label>
+        <input type="date" id="event-date">
+
+        <label for="event-id">ת"ז (למחיקה/עדכון):</label>
+        <input type="text" id="event-id">
+
+        <button type="button" onclick="submitForm()">שלח</button>
+        <button type="button" onclick="hideForm()">סגור</button>
+    </div>
+
+    <!-- קלנדר -->
+    <div id="calendar"></div>
+
+    <script>
+        let calendar;
+        let currentType = null; // הגדרה גלובלית למשתנה
+
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var calendarEl = document.getElementById("calendar");
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
+                events: [],
+            });
+            calendar.render();
+
+            // טעינת אירועים מה-API
+            loadEvents();
+        });
+
+        function loadEvents() {
+            axios.get("https://localhost:7008/api/Event")
+                .then(res => calendar.addEventSource(res.data))
+                .catch(err => console.error(err));
+        }
+
+        function showForm(type) {
+            curentType = type
+            const form = document.getElementById("event-form");
+            const title = document.getElementById("form-title");
+            form.style.display = "block";
+
+            if (type === 'add') {
+                title.textContent = "הוספת אירוע";
+            } else if (type === 'update') {
+                title.textContent = "עדכון אירוע";
+            } else if (type === 'delete') {
+                title.textContent = "מחיקת אירוע";
+            }
+
+        }
+
+        function hideForm() {
+            document.getElementById("event-form").style.display = "none";
+        }
+
+        function submitForm() {
+            let id = document.querySelector("#event-id").value
+            let date = document.querySelector("#event-date").value
+            let title1 = document.querySelector("#event-name").value
+
+            if (curentType === "add") {
+                postEvent(id, title1, date)
+            } else if (curentType === 'update') {
+                putEvent(id, title1, date)
+            } else if (curentType === 'delete') {
+                deleteEvent(id, title1, date)
+            }
+        }
+        const putEvent = (id, title, date) => {
+            axios.put("https://eventsapi.onrender.com/api/Events")
+
+        }
+        const postEvent = (id, title, date) => {
+            axios.post("https://eventsapi.onrender.com/api/Events", { id, title, date }).then((res) => {
+                loadEvents()
+                alert("good")
+            })
+        }
+        const deleteEvent = (id, title1, date) => {
+
+        }
+    </script>
+</body>
+
+</html>
